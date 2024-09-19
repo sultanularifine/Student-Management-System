@@ -12,17 +12,23 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class StudentInfoController extends Controller
 {
-    public function viewDest(Request $request, $id)
+
+    public function index(Request $request)
     {
+
         $search = $request->input('search', '');
-    
-        if ($search != "") {
-            $destinations = Student::where('category', 'LIKE', "$search%")->get();
+
+        if (!empty($search)) {
+
+            $students = Student::where('name', 'LIKE', "%$search%")
+                ->orWhere('phone', 'LIKE', "%$search%")
+                ->orWhere('address', 'LIKE', "%$search%")
+                ->get();
         } else {
-            $destinations = Student::where('id', $id)->get();
+
+            $students = Student::all();
         }
-    
-        return view('destination.viewDest', compact('destinations'));
+        return view('studentinfo.index', ['students' => $students, 'search' => $search]);
     }
 
     public function create()
@@ -145,13 +151,13 @@ class StudentInfoController extends Controller
             'email' => 'The provided credentials do not match our records.',
         ]);
     }
-    public function createPDF() {
+    public function createPDF()
+    {
         // retreive all records from db
         $student = Student::all();
         // share data to view
-        view()->share('student',$student);
+        view()->share('student', $student);
         $pdf = Pdf::loadView('studentinfo.pdfview', ['student' => $student]);
         return $pdf->download('invoice.pdf');
-        
-      }
+    }
 }
